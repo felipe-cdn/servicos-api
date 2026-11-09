@@ -51,7 +51,9 @@ def test_remover_servico(client):
     assert client.delete(f"/servicos/{criado['id']}").status_code == 204
     assert client.get(f"/servicos/{criado['id']}").status_code == 404
 
+
 def test_raiz_mostra_nome_e_versao(client):
     dados = client.get("/").get_json()
     assert "app" in dados
     assert "versao" in dados
+    
