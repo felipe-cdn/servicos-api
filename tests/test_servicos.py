@@ -38,3 +38,8 @@ def test_status_invalido_e_recusado(lista):
     servico = lista.criar(DADOS)
     with pytest.raises(ServicoInvalido):
         lista.atualizar_status(servico["id"], "voando")
+
+
+def test_remover_servico_inexistente_devolve_falso(lista):
+    # Remover um id que não existe não deve dar erro
+    assert lista.remover(999) is False
