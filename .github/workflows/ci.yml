@@ -1,0 +1,112 @@
+name: CI
+
+# Roda sozinho a cada push na main, a cada Pull Request e quando criamos uma tag de versão (v1.0.0)
+on:
+  push:
+    branches: [main]
+    tags: ["v*"]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  # 1) Testes: baixa o código, instala as dependências, valida e testa
+  test:
+    name: Testes
+    runs-on: ubuntu-latest
+    steps:
+      - name: Obter o código (checkout)
+        uses: actions/checkout@v4
+
+      - name: Preparar o Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Instalar dependências
+        run: pip install -r requirements-dev.txt
+
+      - name: Validar a aplicação (estilo e compilação)
+        run: |
+          flake8
+          python -m compileall -q app
+
+      - name: Rodar os testes automatizados
+        run: pytest --junitxml=resultados-testes.xml
+
+      - name: Guardar o relatório dos testes
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: resultados-testes
+          path: resultados-testes.xml
+
+  # 2) Segurança: procura vulnerabilidades conhecidas nas dependências
+  seguranca:
+    name: Segurança (pip-audit)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Verificar dependências vulneráveis
+        run: |
+          pip install pip-audit
+          pip-audit -r requirements.txt
+
+  # 3) Artefato: constrói a imagem Docker e publica no GitHub Container Registry (GHCR)
+  docker:
+    name: Imagem Docker
+    needs: [test, seguranca]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    env:
+      PUBLICAR: ${{ github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/v') }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: docker/setup-buildx-action@v3
+
+      - name: Entrar no GHCR (usa o segredo automático GITHUB_TOKEN)
+        if: env.PUBLICAR == 'true'
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Definir nome e tags da imagem
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ghcr.io/${{ github.repository }}
+          tags: |
+            type=sha,prefix=sha-
+            type=semver,pattern={{version}}
+            type=raw,value=latest,enable={{is_default_branch}}
+
+      - name: Construir (e publicar) a imagem
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: ${{ env.PUBLICAR == 'true' }}
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          build-args: APP_VERSION=${{ github.ref_name }}
+
+      - name: Resumo do artefato
+        if: env.PUBLICAR == 'true'
+        run: |
+          echo "### Imagem publicada" >> "$GITHUB_STEP_SUMMARY"
+          echo '```' >> "$GITHUB_STEP_SUMMARY"
+          echo "${{ steps.meta.outputs.tags }}" >> "$GITHUB_STEP_SUMMARY"
+          echo '```' >> "$GITHUB_STEP_SUMMARY"

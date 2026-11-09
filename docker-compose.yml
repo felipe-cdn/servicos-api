@@ -1,0 +1,12 @@
+# Sobe a API a partir da imagem publicada pelo pipeline (GHCR).
+# Para trocar de versão (ou voltar a uma anterior), mude IMAGE_TAG no arquivo .env.
+services:
+  api:
+    image: ghcr.io/${GITHUB_USER}/servicos-api:${IMAGE_TAG:-latest}
+    ports:
+      - "8000:8000"
+    environment:
+      APP_NAME: ${APP_NAME:-API de Serviços}
+      APP_ENV: ${APP_ENV:-producao}
+      LOG_LEVEL: ${LOG_LEVEL:-INFO}
+    restart: unless-stopped
