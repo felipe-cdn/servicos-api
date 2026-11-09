@@ -42,4 +42,4 @@ def test_status_invalido_e_recusado(lista):
 
 def test_remover_servico_inexistente_devolve_falso(lista):
     # Remover um id que não existe não deve dar erro
-    assert lista.remover(999) is True
+    assert lista.remover(999) is False
