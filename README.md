@@ -174,3 +174,6 @@ O `docker-compose.yml` sobe sempre o mesmo ambiente, de forma reproduzível.
 - Execução **com falha** (teste quebrado de propósito): _(link)_
 - Pull Requests: _(links)_
 - Imagem publicada (GHCR): _(link)_
+
+
+Versão atual: 1.0.1
