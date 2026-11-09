@@ -56,4 +56,3 @@ def test_raiz_mostra_nome_e_versao(client):
     dados = client.get("/").get_json()
     assert "app" in dados
     assert "versao" in dados
-    
