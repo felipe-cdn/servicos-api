@@ -168,12 +168,19 @@ O `docker-compose.yml` sobe sempre o mesmo ambiente, de forma reproduzível.
 
 ## Evidências (GitHub Actions)
 
-> Preencher com os links reais depois das execuções.
+Os links abaixo mostram o histórico real do pipeline do projeto.
 
-- Execução **com sucesso:** _(link)_
-- Execução **com falha** (teste quebrado de propósito): _(link)_
-- Pull Requests: _(links)_
-- Imagem publicada (GHCR): _(link)_
+| Evidência | Link |
+|---|---|
+| Execução **com falha** (teste quebrado de propósito) | [Execução #8](https://github.com/felipe-cdn/servicos-api/actions/runs/42689241453) |
+| Execução **com sucesso** (após a correção) | [Execução #9](https://github.com/felipe-cdn/servicos-api/actions/runs/42689923261) |
+| Todas as execuções | [GitHub Actions](https://github.com/felipe-cdn/servicos-api/actions) |
+| Pull Requests | [Pull Requests](https://github.com/felipe-cdn/servicos-api/pulls?q=is%3Apr) |
+| Release v1.0.0 | [Release v1.0.0](https://github.com/felipe-cdn/servicos-api/releases/tag/v1.0.0) |
+| Imagem publicada (GHCR) | [ghcr.io/felipe-cdn/servicos-api](https://github.com/felipe-cdn/servicos-api/pkgs/container/servicos-api) |
 
+### O que aconteceu na falha
+
+Em um Pull Request, um teste foi alterado de propósito (`is False` virou `is True`). O pipeline ficou vermelho no job **Testes**, o log mostrou `assert False is True` e o job **Imagem Docker** foi pulado, então nenhuma imagem quebrada foi publicada. O teste foi corrigido no mesmo PR e a execução seguinte (#9) passou nos três jobs.
 
 Versão atual: 1.0.1
